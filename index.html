@@ -112,21 +112,12 @@
 
     <header>
         <h1>3D Printing Threads: Fusion 360 & Slicer Guide</h1>
-        <p>A reference guide for fixing "Compute Failed" errors in Fusion 360 and achieving perfect thread fits for 3D printing.</p>
     </header>
 
     <main>
         
-        <section id="the-problem">
-            <h2>1. The Problem: "Compute Failed"</h2>
-            <div class="alert alert-error">
-                <strong>Error:</strong> "The operation could not heal the edited region of the model."
-            </div>
-            <p><strong>Why it happens:</strong> "Modeled" threads contain thousands of complex helical faces. Using the standard <code>Press/Pull (Q)</code> tool tries to calculate the intersection of all these faces simultaneously, causing self-intersection errors.</p>
-        </section>
-
-        <section id="fusion-solutions">
-            <h2>2. Solutions in Fusion 360</h2>
+            <section id="fusion-solutions">
+            <h2>1. Solutions in Fusion 360</h2>
             
             <h3>Method A: Offset Face (The Correct Way)</h3>
             <p>Instead of Press/Pull, use the specific Offset Face command.</p>
@@ -147,7 +138,7 @@
         </section>
 
         <section id="tolerances">
-            <h2>3. Tolerance Values (The "Magic Numbers")</h2>
+            <h2>2. Tolerance Values (The "Magic Numbers")</h2>
             <p>Use these values in the "Offset Face" command. Negative numbers remove material.</p>
 
             <table>
@@ -180,7 +171,7 @@
         </section>
 
         <section id="guide">
-            <h2>4. Step-by-Step Execution Guide</h2>
+            <h2>3. Step-by-Step Execution Guide</h2>
 
             <div class="step-box">
                 <h3>For Internal Threads (Nuts/Holes)</h3>
@@ -204,7 +195,7 @@
         </section>
 
         <section id="slicer-settings">
-            <h2>5. Slicer Settings (The "No-CAD" Fix)</h2>
+            <h2>4. Slicer Settings (The "No-CAD" Fix)</h2>
             <p>If you cannot edit the CAD file, use these slicer compensations.</p>
 
             <table>
