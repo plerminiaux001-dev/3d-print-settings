@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Printing Threads: Fusion 360 & Slicer Guide</title>
+    <style>
+        :root {
+            --primary-color: #0066cc;
+            --bg-color: #f6f8fa;
+            --text-color: #24292f;
+            --border-color: #d0d7de;
+            --code-bg: #f6f8fa;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 2rem;
+            color: #050505;
+        }
+
+        h2 {
+            margin-top: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.3rem;
+        }
+
+        h3 {
+            margin-top: 1.5rem;
+            color: #444;
+        }
+
+        .alert {
+            background-color: #fff8c5;
+            border: 1px solid #d4a72c40;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+
+        .alert-error {
+            background-color: #ffebe9;
+            border: 1px solid #ff818240;
+        }
+
+        code {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            background-color: rgba(175, 184, 193, 0.2);
+            padding: 0.2em 0.4em;
+            border-radius: 6px;
+            font-size: 85%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--bg-color);
+            font-weight: 600;
+        }
+
+        ul {
+            padding-left: 2rem;
+        }
+
+        .step-box {
+            background-color: #fcfcfc;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>3D Printing Threads: Fusion 360 & Slicer Guide</h1>
+        <p>A reference guide for fixing "Compute Failed" errors in Fusion 360 and achieving perfect thread fits for 3D printing.</p>
+    </header>
+
+    <main>
+        
+        <section id="the-problem">
+            <h2>1. The Problem: "Compute Failed"</h2>
+            <div class="alert alert-error">
+                <strong>Error:</strong> "The operation could not heal the edited region of the model."
+            </div>
+            <p><strong>Why it happens:</strong> "Modeled" threads contain thousands of complex helical faces. Using the standard <code>Press/Pull (Q)</code> tool tries to calculate the intersection of all these faces simultaneously, causing self-intersection errors.</p>
+        </section>
+
+        <section id="fusion-solutions">
+            <h2>2. Solutions in Fusion 360</h2>
+            
+            <h3>Method A: Offset Face (The Correct Way)</h3>
+            <p>Instead of Press/Pull, use the specific Offset Face command.</p>
+            <ol>
+                <li>Go to <strong>Solid Tab > Modify > Offset Face</strong>.</li>
+                <li>Select the <strong>angled faces</strong> (flanks) of the thread.</li>
+                <li>Enter your offset value (see table below).</li>
+            </ol>
+
+            <h3>Method B: The Rollback Method (Most Stable)</h3>
+            <p>Modify the cylinder before the thread is applied.</p>
+            <ol>
+                <li>Find the <strong>Thread Feature</strong> in the timeline.</li>
+                <li>Drag the history marker <strong>before</strong> the thread.</li>
+                <li>Use <strong>Press/Pull</strong> on the plain cylinder face (make hole larger or shaft smaller).</li>
+                <li>Drag the marker back to the end. The thread recomputes on the new diameter.</li>
+            </ol>
+        </section>
+
+        <section id="tolerances">
+            <h2>3. Tolerance Values (The "Magic Numbers")</h2>
+            <p>Use these values in the "Offset Face" command. Negative numbers remove material.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Printer Type</th>
+                        <th>Offset Value</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>FDM (Standard)</strong></td>
+                        <td><code>-0.15 mm</code></td>
+                        <td>Prusa, Bambu, well-tuned machines.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>FDM (Loose)</strong></td>
+                        <td><code>-0.20 mm</code></td>
+                        <td>Ender 3, older machines.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SLA (Resin)</strong></td>
+                        <td><code>-0.05 mm</code></td>
+                        <td>Resin is highly accurate.</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p><em>Note: If offsetting both the nut and the bolt, halve these numbers.</em></p>
+        </section>
+
+        <section id="guide">
+            <h2>4. Step-by-Step Execution Guide</h2>
+
+            <div class="step-box">
+                <h3>For Internal Threads (Nuts/Holes)</h3>
+                <p><strong>Target:</strong> Make the hole slightly <em>larger</em>.</p>
+                <ol>
+                    <li><strong>Tool:</strong> Solid > Modify > Offset Face.</li>
+                    <li><strong>Select:</strong> All angled faces of the internal thread.</li>
+                    <li><strong>Value:</strong> Enter a <strong>Positive (+)</strong> value (e.g., <code>0.15 mm</code>).</li>
+                </ol>
+            </div>
+
+            <div class="step-box">
+                <h3>For External Threads (Bolts/Screws)</h3>
+                <p><strong>Target:</strong> Make the bolt slightly <em>thinner</em>.</p>
+                <ol>
+                    <li><strong>Tool:</strong> Solid > Modify > Offset Face.</li>
+                    <li><strong>Select:</strong> All angled faces of the external thread.</li>
+                    <li><strong>Value:</strong> Enter a <strong>Negative (-)</strong> value (e.g., <code>-0.15 mm</code>).</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="slicer-settings">
+            <h2>5. Slicer Settings (The "No-CAD" Fix)</h2>
+            <p>If you cannot edit the CAD file, use these slicer compensations.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Goal</th>
+                        <th>Cura Setting</th>
+                        <th>Prusa/Bambu Setting</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Loosen Nut</strong></td>
+                        <td>Hole Horizontal Expansion</td>
+                        <td>X-Y Hole Compensation</td>
+                        <td><code>0.15 mm</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Loosen Bolt</strong></td>
+                        <td>Horizontal Expansion</td>
+                        <td>X-Y Contour Compensation</td>
+                        <td><code>-0.15 mm</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sharper Threads</strong></td>
+                        <td>Wall Ordering: Outside To Inside</td>
+                        <td>External Perimeters First</td>
+                        <td><strong>Checked</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Generated for personal reference. Use "Offset Face" for best results.</p>
+    </footer>
+
+</div>
+
+</body>
+</html>
