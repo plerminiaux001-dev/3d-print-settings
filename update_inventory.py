@@ -34,64 +34,26 @@ def get_filament_data(gcode_path):
     return results
 
 def generate_html(df):
-    def get_color(w):
-        if w <= 0: return "#d9534f" # Red
-        if w < 250: return "#f0ad4e" # Orange
-        return "#6b8e23" # Earth Green
-
+    # Create the inventory table string
     inventory_rows = ""
     for _, row in df.sort_values('Weight (g)').iterrows():
-        color = get_color(row['Weight (g)'])
-        inventory_rows += f"""
-        <tr>
-            <td>{row['Filament Name']}</td>
-            <td>{row['Color']}</td>
-            <td style="color: {color}; font-weight: bold;">{row['Weight (g)']}g</td>
-            <td style="font-size: 0.8rem; color: #666;">{row['Profile Name']}</td>
-        </tr>"""
+        color = "#d9534f" if row['Weight (g)'] < 250 else "#6b8e23"
+        inventory_rows += f"<tr><td>{row['Filament Name']}</td><td>{row['Color']}</td><td style='color:{color}; font-weight:bold;'>{row['Weight (g)']}g</td><td>{row['Profile Name']}</td></tr>"
+    
+    table_html = f"<table><thead><tr><th>Filament</th><th>Color</th><th>Stock</th><th>Profile</th></tr></thead><tbody>{inventory_rows}</tbody></table>"
 
-    html_content = f"""
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>3D Printing Hub</title>
-    <style>
-        :root {{ --earth-green: #6b8e23; --earth-brown: #8b4513; --cream: #fdfaf5; --text: #3e3e3e; }}
-        body {{ font-family: -apple-system, sans-serif; background: var(--cream); color: var(--text); line-height: 1.6; margin: 0; }}
-        .container {{ max-width: 850px; margin: 2rem auto; background: white; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-radius: 8px; }}
-        header {{ background: #4a5d4e; color: white; padding: 1.5rem; margin: -2rem -2rem 2rem -2rem; border-radius: 8px 8px 0 0; text-align: center; }}
-        h2 {{ border-bottom: 2px solid #d2c4b5; padding-bottom: 5px; color: var(--earth-brown); }}
-        table {{ width: 100%; border-collapse: collapse; margin-bottom: 3rem; }}
-        th {{ background: var(--earth-green); color: white; text-align: left; padding: 12px; }}
-        td {{ padding: 10px; border-bottom: 1px solid #eee; }}
-        .step-box {{ background: #f9f6f2; border-left: 5px solid var(--earth-brown); padding: 1rem; margin: 1rem 0; }}
-    </style>
-</head>
-<body>
-<div class="container">
-    <header><h1>3D Printing Hub</h1><p>Inventory & Reference Guide</p></header>
-    <section>
-        <h2>Filament Inventory</h2>
-        <table>
-            <thead><tr><th>Filament</th><th>Color</th><th>Stock</th><th>Slicer Profile</th></tr></thead>
-            <tbody>{inventory_rows}</tbody>
-        </table>
-    </section>
-    <section>
-        <h2>Fusion 360 Guide</h2>
-        <div class="step-box">
-            <p>Use <b>Modify > Offset Face</b> with <code>-0.15mm</code> for standard threads.</p>
-        </div>
-    </section>
-    <footer><p>Sync Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p></footer>
-</div>
-</body>
-</html>
-"""
-    with open(HTML_FILE, 'w', encoding='utf-8') as f:
-        f.write(html_content)
+    # 1. Read the Template
+    with open('template.html', 'r', encoding='utf-8') as f:
+        content = f.read()
 
+    # 2. Inject the data into placeholders
+    content = content.replace('', table_html)
+    content = content.replace('', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+
+    # 3. Save as the final index.html
+    with open('index.html', 'w', encoding='utf-8') as f:
+        f.write(content)
+        
 def main():
     log("--- Starting Inventory Update ---")
     if not os.path.exists(INPUT_FOLDER): os.makedirs(INPUT_FOLDER)
