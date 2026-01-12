@@ -10,102 +10,133 @@ INPUT_FOLDER = 'To_Inventory'
 ARCHIVE_FOLDER = 'Inventoried'
 HTML_FILE = 'index.html'
 
-def log(message):
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] {message}")
-
-def get_filament_data(gcode_path):
-    results = []
-    try:
-        with open(gcode_path, 'r', encoding='utf-8', errors='ignore') as f:
-            content = f.read()
-
-        usage_list = []
-        weight_match = re.search(r"; filament used \[g\] = (.+)", content)
-        if weight_match:
-            raw_nums = weight_match.group(1).strip()
-            usage_list = [float(x) for x in raw_nums.split(',') if x.strip().replace('.', '', 1).isdigit()]
-
-        name_list = []
-        id_line_match = re.search(r'; filament_settings_id = (.+)', content)
-        if id_line_match:
-            line_text = id_line_match.group(1)
-            name_list = re.findall(r'"([^"]*)"', line_text)
-            if not name_list:
-                name_list = [x.strip() for x in line_text.split(';')]
-
-        for index, amount in enumerate(usage_list):
-            if amount > 0:
-                profile_used = name_list[index] if index < len(name_list) else (name_list[0] if name_list else "Unknown")
-                results.append((profile_used, amount))
-    except Exception as e:
-        log(f"Error reading file: {e}")
-    return results
-
-def update_csv_and_generate_html(all_updates):
-    if not os.path.exists(CSV_FILE):
-        log(f"Error: {CSV_FILE} not found.")
-        return False
-
-    df = pd.read_csv(CSV_FILE)
-    for profile_name, usage_grams in all_updates:
-        mask = df['Profile Name'] == profile_name
-        if mask.any():
-            current_weight = df.loc[mask, 'Weight (g)'].iloc[0]
-            new_weight = round(float(current_weight) - usage_grams, 2)
-            df.loc[mask, 'Weight (g)'] = new_weight
-            log(f"   >>> Deducted {usage_grams}g from '{profile_name}'. New Stock: {new_weight}g")
-        else:
-            log(f"   !!! NOT FOUND: '{profile_name}' not in CSV.")
-
-    df.to_csv(CSV_FILE, index=False)
-    generate_html(df)
-    return True
-
-def generate_html(df):
+def generate_combined_html(df):
+    # Sort inventory by weight (lowest first)
     df_sorted = df.sort_values(by='Weight (g)', ascending=True)
-    html_table = df_sorted.to_html(classes='inventory-table', index=False)
     
-    html_content = f"""
-    <html>
-    <head>
-        <title>Filament Inventory</title>
-        <style>
-            body {{ font-family: sans-serif; margin: 40px; background: #f4f4f4; }}
-            .inventory-table {{ border-collapse: collapse; width: 100%; background: white; }}
-            .inventory-table th, .inventory-table td {{ border: 1px solid #ddd; padding: 12px; }}
-            .inventory-table th {{ background-color: #24292e; color: white; }}
-            .low-stock {{ color: red; font-weight: bold; }}
-        </style>
-    </head>
-    <body>
-        <h1>Filament Inventory Dashboard</h1>
-        {html_table}
-        <p>Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-    </body>
-    </html>
-    """
-    with open(HTML_FILE, 'w') as f:
-        f.write(html_content)
+    # Logic to color-code the Weight column based on stock
+    def get_stock_style(weight):
+        if weight <= 0: return "color: #d9534f; font-weight: bold;" # Red-ish
+        if weight < 250: return "color: #f0ad4e; font-weight: bold;" # Orange-ish
+        return "color: #6b8e23;" # Sage Green
 
-def main():
-    if not os.path.exists(INPUT_FOLDER): os.makedirs(INPUT_FOLDER)
-    files = [f for f in os.listdir(INPUT_FOLDER) if f.lower().endswith('.gcode')]
-    if not files:
-        if os.path.exists(CSV_FILE): generate_html(pd.read_csv(CSV_FILE))
-        return
+    inventory_rows = ""
+    for _, row in df_sorted.iterrows():
+        style = get_stock_style(row['Weight (g)'])
+        inventory_rows += f"""
+            <tr>
+                <td>{row['Filament Name']}</td>
+                <td>{row['Color']}</td>
+                <td style="{style}">{row['Weight (g)']}g</td>
+                <td>{row['Profile Name']}</td>
+                <td>{row['Type']}</td>
+            </tr>"""
 
-    all_updates = []
-    processed_files = []
-    for filename in files:
-        updates = get_filament_data(os.path.join(INPUT_FOLDER, filename))
-        if updates:
-            all_updates.extend(updates)
-            processed_files.append(filename)
+    full_html = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Printing Hub: Settings & Inventory</title>
+    <style>
+        :root {{
+            --primary-earth: #6b8e23; /* Olive Drab */
+            --secondary-earth: #8b4513; /* Saddle Brown */
+            --bg-color: #fdfaf5; /* Cream White */
+            --text-color: #3e3e3e;
+            --border-color: #d2c4b5;
+            --header-bg: #4a5d4e; /* Dark Slate Green */
+        }}
 
-    if all_updates and update_csv_and_generate_html(all_updates):
-        if not os.path.exists(ARCHIVE_FOLDER): os.makedirs(ARCHIVE_FOLDER)
-        for f in processed_files:
-            shutil.move(os.path.join(INPUT_FOLDER, f), os.path.join(ARCHIVE_FOLDER, f))
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            margin: 0;
+            background-color: var(--bg-color);
+        }}
 
-if __name__ == "__main__":
-    main()
+        .container {{ max-width: 900px; margin: 0 auto; padding: 2rem; background: white; box-shadow: 0 0 20px rgba(0,0,0,0.05); }}
+
+        header {{
+            background: var(--header-bg);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+            margin: -2rem -2rem 2rem -2rem;
+        }}
+
+        h1, h2, h3 {{ color: var(--secondary-earth); border-bottom: 1px solid var(--border-color); padding-bottom: 0.3rem; }}
+        h1 {{ border: none; margin: 0; color: white; }}
+
+        /* Inventory Table Styling */
+        .inventory-section {{ margin-bottom: 4rem; padding: 1rem; border: 2px solid var(--primary-earth); border-radius: 8px; }}
+        table {{ width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }}
+        th {{ background-color: var(--primary-earth); color: white; text-align: left; padding: 12px; }}
+        td {{ border-bottom: 1px solid var(--border-color); padding: 10px; }}
+        tr:hover {{ background-color: #f1f8e9; }}
+
+        .step-box {{ background-color: #f9f6f2; border-left: 5px solid var(--secondary-earth); padding: 1rem; margin: 1rem 0; }}
+        code {{ background: #e8e0d5; padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 90%; }}
+        footer {{ text-align: center; margin-top: 3rem; color: #888; font-size: 0.8rem; border-top: 1px solid var(--border-color); padding-top: 1rem; }}
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>3D Printing Hub</h1>
+        <p>Filament Inventory & Technical Guides</p>
+    </header>
+
+    <main>
+        <section class="inventory-section">
+            <h2>Current Filament Stock</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Filament</th>
+                        <th>Color</th>
+                        <th>Weight</th>
+                        <th>Slicer Profile</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {inventory_rows}
+                </tbody>
+            </table>
+            <p style="font-size: 0.8rem; font-style: italic;">Auto-updated: {datetime.now().strftime('%Y-%m-%d %H:%M')}</p>
+        </section>
+
+        <section id="fusion-solutions">
+            <h2>1. Solutions in Fusion 360</h2>
+            <h3>Method A: Offset Face (The Correct Way)</h3>
+            <p>Instead of Press/Pull, use the specific Offset Face command.</p>
+            <div class="step-box">
+                <ol>
+                    <li>Go to <strong>Solid Tab > Modify > Offset Face</strong>.</li>
+                    <li>Select the <strong>angled faces</strong> (flanks) of the thread.</li>
+                    <li>Enter your offset value (Standard: <code>-0.15mm</code>).</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="tolerances">
+            <h2>2. Slicer Compensations</h2>
+            <p>Use <strong>X-Y Hole Compensation</strong> for internal threads if CAD is unavailable.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>Built with Python & GitHub Actions | Keep Printing.</p>
+    </footer>
+</div>
+</body>
+</html>
+"""
+    with open(HTML_FILE, "w", encoding='utf-8') as f:
+        f.write(full_html)
+
+# ... (Rest of your processing logic from the previous update_inventory.py script)
