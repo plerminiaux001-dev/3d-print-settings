@@ -4,139 +4,123 @@ import pandas as pd
 import shutil
 from datetime import datetime
 
-# --- CONFIGURATION ---
+# --- CONFIGURATION (GITHUB PATHS) ---
 CSV_FILE = 'Filament Inventory - Inventory.csv'
 INPUT_FOLDER = 'To_Inventory'
 ARCHIVE_FOLDER = 'Inventoried'
 HTML_FILE = 'index.html'
 
-def generate_combined_html(df):
-    # Sort inventory by weight (lowest first)
-    df_sorted = df.sort_values(by='Weight (g)', ascending=True)
-    
-    # Logic to color-code the Weight column based on stock
-    def get_stock_style(weight):
-        if weight <= 0: return "color: #d9534f; font-weight: bold;" # Red-ish
-        if weight < 250: return "color: #f0ad4e; font-weight: bold;" # Orange-ish
-        return "color: #6b8e23;" # Sage Green
+def log(message):
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] {message}")
+
+def get_filament_data(gcode_path):
+    results = []
+    try:
+        with open(gcode_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+        
+        # Extract Weight
+        weight_match = re.search(r"; filament used \[g\] = (.+)", content)
+        # Extract Profile Name
+        name_match = re.search(r'; filament_settings_id = (.+)', content)
+        
+        if weight_match and name_match:
+            usage = float(weight_match.group(1).strip().split(',')[0])
+            name = name_match.group(1).replace('"', '').strip()
+            results.append((name, usage))
+            log(f"Found in G-code: {name} used {usage}g")
+    except Exception as e:
+        log(f"Error reading {gcode_path}: {e}")
+    return results
+
+def generate_html(df):
+    def get_color(w):
+        if w <= 0: return "#d9534f" # Red
+        if w < 250: return "#f0ad4e" # Orange
+        return "#6b8e23" # Earth Green
 
     inventory_rows = ""
-    for _, row in df_sorted.iterrows():
-        style = get_stock_style(row['Weight (g)'])
+    for _, row in df.sort_values('Weight (g)').iterrows():
+        color = get_color(row['Weight (g)'])
         inventory_rows += f"""
-            <tr>
-                <td>{row['Filament Name']}</td>
-                <td>{row['Color']}</td>
-                <td style="{style}">{row['Weight (g)']}g</td>
-                <td>{row['Profile Name']}</td>
-                <td>{row['Type']}</td>
-            </tr>"""
+        <tr>
+            <td>{row['Filament Name']}</td>
+            <td>{row['Color']}</td>
+            <td style="color: {color}; font-weight: bold;">{row['Weight (g)']}g</td>
+            <td style="font-size: 0.8rem; color: #666;">{row['Profile Name']}</td>
+        </tr>"""
 
-    full_html = f"""
+    html_content = f"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Printing Hub: Settings & Inventory</title>
+    <title>3D Printing Hub</title>
     <style>
-        :root {{
-            --primary-earth: #6b8e23; /* Olive Drab */
-            --secondary-earth: #8b4513; /* Saddle Brown */
-            --bg-color: #fdfaf5; /* Cream White */
-            --text-color: #3e3e3e;
-            --border-color: #d2c4b5;
-            --header-bg: #4a5d4e; /* Dark Slate Green */
-        }}
-
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
-            margin: 0;
-            background-color: var(--bg-color);
-        }}
-
-        .container {{ max-width: 900px; margin: 0 auto; padding: 2rem; background: white; box-shadow: 0 0 20px rgba(0,0,0,0.05); }}
-
-        header {{
-            background: var(--header-bg);
-            color: white;
-            padding: 2rem;
-            text-align: center;
-            border-radius: 8px 8px 0 0;
-            margin: -2rem -2rem 2rem -2rem;
-        }}
-
-        h1, h2, h3 {{ color: var(--secondary-earth); border-bottom: 1px solid var(--border-color); padding-bottom: 0.3rem; }}
-        h1 {{ border: none; margin: 0; color: white; }}
-
-        /* Inventory Table Styling */
-        .inventory-section {{ margin-bottom: 4rem; padding: 1rem; border: 2px solid var(--primary-earth); border-radius: 8px; }}
-        table {{ width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }}
-        th {{ background-color: var(--primary-earth); color: white; text-align: left; padding: 12px; }}
-        td {{ border-bottom: 1px solid var(--border-color); padding: 10px; }}
-        tr:hover {{ background-color: #f1f8e9; }}
-
-        .step-box {{ background-color: #f9f6f2; border-left: 5px solid var(--secondary-earth); padding: 1rem; margin: 1rem 0; }}
-        code {{ background: #e8e0d5; padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 90%; }}
-        footer {{ text-align: center; margin-top: 3rem; color: #888; font-size: 0.8rem; border-top: 1px solid var(--border-color); padding-top: 1rem; }}
+        :root {{ --earth-green: #6b8e23; --earth-brown: #8b4513; --cream: #fdfaf5; --text: #3e3e3e; }}
+        body {{ font-family: -apple-system, sans-serif; background: var(--cream); color: var(--text); line-height: 1.6; margin: 0; }}
+        .container {{ max-width: 850px; margin: 2rem auto; background: white; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-radius: 8px; }}
+        header {{ background: #4a5d4e; color: white; padding: 1.5rem; margin: -2rem -2rem 2rem -2rem; border-radius: 8px 8px 0 0; text-align: center; }}
+        h2 {{ border-bottom: 2px solid #d2c4b5; padding-bottom: 5px; color: var(--earth-brown); }}
+        table {{ width: 100%; border-collapse: collapse; margin-bottom: 3rem; }}
+        th {{ background: var(--earth-green); color: white; text-align: left; padding: 12px; }}
+        td {{ padding: 10px; border-bottom: 1px solid #eee; }}
+        .step-box {{ background: #f9f6f2; border-left: 5px solid var(--earth-brown); padding: 1rem; margin: 1rem 0; }}
     </style>
 </head>
 <body>
 <div class="container">
-    <header>
-        <h1>3D Printing Hub</h1>
-        <p>Filament Inventory & Technical Guides</p>
-    </header>
-
-    <main>
-        <section class="inventory-section">
-            <h2>Current Filament Stock</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Filament</th>
-                        <th>Color</th>
-                        <th>Weight</th>
-                        <th>Slicer Profile</th>
-                        <th>Type</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {inventory_rows}
-                </tbody>
-            </table>
-            <p style="font-size: 0.8rem; font-style: italic;">Auto-updated: {datetime.now().strftime('%Y-%m-%d %H:%M')}</p>
-        </section>
-
-        <section id="fusion-solutions">
-            <h2>1. Solutions in Fusion 360</h2>
-            <h3>Method A: Offset Face (The Correct Way)</h3>
-            <p>Instead of Press/Pull, use the specific Offset Face command.</p>
-            <div class="step-box">
-                <ol>
-                    <li>Go to <strong>Solid Tab > Modify > Offset Face</strong>.</li>
-                    <li>Select the <strong>angled faces</strong> (flanks) of the thread.</li>
-                    <li>Enter your offset value (Standard: <code>-0.15mm</code>).</li>
-                </ol>
-            </div>
-        </section>
-
-        <section id="tolerances">
-            <h2>2. Slicer Compensations</h2>
-            <p>Use <strong>X-Y Hole Compensation</strong> for internal threads if CAD is unavailable.</p>
-        </section>
-    </main>
-
-    <footer>
-        <p>Built with Python & GitHub Actions | Keep Printing.</p>
-    </footer>
+    <header><h1>3D Printing Hub</h1><p>Inventory & Reference Guide</p></header>
+    <section>
+        <h2>Filament Inventory</h2>
+        <table>
+            <thead><tr><th>Filament</th><th>Color</th><th>Stock</th><th>Slicer Profile</th></tr></thead>
+            <tbody>{inventory_rows}</tbody>
+        </table>
+    </section>
+    <section>
+        <h2>Fusion 360 Guide</h2>
+        <div class="step-box">
+            <p>Use <b>Modify > Offset Face</b> with <code>-0.15mm</code> for standard threads.</p>
+        </div>
+    </section>
+    <footer><p>Sync Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p></footer>
 </div>
 </body>
 </html>
 """
-    with open(HTML_FILE, "w", encoding='utf-8') as f:
-        f.write(full_html)
+    with open(HTML_FILE, 'w', encoding='utf-8') as f:
+        f.write(html_content)
 
-# ... (Rest of your processing logic from the previous update_inventory.py script)
+def main():
+    log("--- Starting Inventory Update ---")
+    if not os.path.exists(INPUT_FOLDER): os.makedirs(INPUT_FOLDER)
+    
+    files = [f for f in os.listdir(INPUT_FOLDER) if f.lower().endswith('.gcode')]
+    df = pd.read_csv(CSV_FILE)
+    
+    if not files:
+        log("No files in To_Inventory. Updating HTML only.")
+        generate_html(df)
+        return
+
+    for filename in files:
+        log(f"Processing: {filename}")
+        updates = get_filament_data(os.path.join(INPUT_FOLDER, filename))
+        for p_name, usage in updates:
+            mask = df['Profile Name'] == p_name
+            if mask.any():
+                df.loc[mask, 'Weight (g)'] = round(df.loc[mask, 'Weight (g)'].iloc[0] - usage, 2)
+                log(f"   Success: {p_name} updated.")
+            else:
+                log(f"   Warning: Profile '{p_name}' not found in CSV.")
+        
+        if not os.path.exists(ARCHIVE_FOLDER): os.makedirs(ARCHIVE_FOLDER)
+        shutil.move(os.path.join(INPUT_FOLDER, filename), os.path.join(ARCHIVE_FOLDER, filename))
+    
+    df.to_csv(CSV_FILE, index=False)
+    generate_html(df)
+    log("Update complete.")
+
+if __name__ == "__main__":
+    main()
