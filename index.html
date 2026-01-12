@@ -1,242 +1,194 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Printing Threads: Fusion 360 & Slicer Guide</title>
+    <title>3D Printing Hub</title>
     <style>
-        :root {
-            --primary-color: #0066cc;
-            --bg-color: #f6f8fa;
-            --text-color: #24292f;
-            --border-color: #d0d7de;
-            --code-bg: #f6f8fa;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            background-color: #ffffff;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        h1 {
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.5rem;
-            margin-bottom: 2rem;
-            color: #050505;
-        }
-
-        h2 {
-            margin-top: 2rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.3rem;
-        }
-
-        h3 {
-            margin-top: 1.5rem;
-            color: #444;
-        }
-
-        .alert {
-            background-color: #fff8c5;
-            border: 1px solid #d4a72c40;
-            padding: 1rem;
-            border-radius: 6px;
-            margin: 1rem 0;
-        }
-
-        .alert-error {
-            background-color: #ffebe9;
-            border: 1px solid #ff818240;
-        }
-
-        code {
-            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-            background-color: rgba(175, 184, 193, 0.2);
-            padding: 0.2em 0.4em;
-            border-radius: 6px;
-            font-size: 85%;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-        }
-
-        th, td {
-            border: 1px solid var(--border-color);
-            padding: 8px 12px;
-            text-align: left;
-        }
-
-        th {
-            background-color: var(--bg-color);
-            font-weight: 600;
-        }
-
-        ul {
-            padding-left: 2rem;
-        }
-
-        .step-box {
-            background-color: #fcfcfc;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 1.5rem;
-            margin: 1rem 0;
-        }
-
-        footer {
-            margin-top: 4rem;
-            padding-top: 2rem;
-            border-top: 1px solid var(--border-color);
-            font-size: 0.9rem;
-            color: #666;
-            text-align: center;
-        }
+        :root { --earth-green: #6b8e23; --earth-brown: #8b4513; --cream: #fdfaf5; --text: #3e3e3e; }
+        body { font-family: -apple-system, sans-serif; background: var(--cream); color: var(--text); line-height: 1.6; margin: 0; }
+        .container { max-width: 850px; margin: 2rem auto; background: white; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-radius: 8px; }
+        header { background: #4a5d4e; color: white; padding: 1.5rem; margin: -2rem -2rem 2rem -2rem; border-radius: 8px 8px 0 0; text-align: center; }
+        h2 { border-bottom: 2px solid #d2c4b5; padding-bottom: 5px; color: var(--earth-brown); }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 3rem; }
+        th { background: var(--earth-green); color: white; text-align: left; padding: 12px; }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
+        .step-box { background: #f9f6f2; border-left: 5px solid var(--earth-brown); padding: 1rem; margin: 1rem 0; }
     </style>
 </head>
 <body>
-
 <div class="container">
-
-    <header>
-        <h1>3D Printing Threads: Fusion 360 & Slicer Guide</h1>
-    </header>
-
-    <main>
-        
-            <section id="fusion-solutions">
-            <h2>1. Solutions in Fusion 360</h2>
-            
-            <h3>Method A: Offset Face (The Correct Way)</h3>
-            <p>Instead of Press/Pull, use the specific Offset Face command.</p>
-            <ol>
-                <li>Go to <strong>Solid Tab > Modify > Offset Face</strong>.</li>
-                <li>Select the <strong>angled faces</strong> (flanks) of the thread.</li>
-                <li>Enter your offset value (see table below).</li>
-            </ol>
-
-            <h3>Method B: The Rollback Method (Most Stable)</h3>
-            <p>Modify the cylinder before the thread is applied.</p>
-            <ol>
-                <li>Find the <strong>Thread Feature</strong> in the timeline.</li>
-                <li>Drag the history marker <strong>before</strong> the thread.</li>
-                <li>Use <strong>Press/Pull</strong> on the plain cylinder face (make hole larger or shaft smaller).</li>
-                <li>Drag the marker back to the end. The thread recomputes on the new diameter.</li>
-            </ol>
-        </section>
-
-        <section id="tolerances">
-            <h2>2. Tolerance Values (The "Magic Numbers")</h2>
-            <p>Use these values in the "Offset Face" command. Negative numbers remove material.</p>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Printer Type</th>
-                        <th>Offset Value</th>
-                        <th>Notes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>FDM (Standard)</strong></td>
-                        <td><code>-0.15 mm</code></td>
-                        <td>Prusa, Bambu, well-tuned machines.</td>
-                    </tr>
-                    <tr>
-                        <td><strong>FDM (Loose)</strong></td>
-                        <td><code>-0.20 mm</code></td>
-                        <td>Ender 3, older machines.</td>
-                    </tr>
-                    <tr>
-                        <td><strong>SLA (Resin)</strong></td>
-                        <td><code>-0.05 mm</code></td>
-                        <td>Resin is highly accurate.</td>
-                    </tr>
-                </tbody>
-            </table>
-            <p><em>Note: If offsetting both the nut and the bolt, halve these numbers.</em></p>
-        </section>
-
-        <section id="guide">
-            <h2>3. Step-by-Step Execution Guide</h2>
-
-            <div class="step-box">
-                <h3>For Internal Threads (Nuts/Holes)</h3>
-                <p><strong>Target:</strong> Make the hole slightly <em>larger</em>.</p>
-                <ol>
-                    <li><strong>Tool:</strong> Solid > Modify > Offset Face.</li>
-                    <li><strong>Select:</strong> All angled faces of the internal thread.</li>
-                    <li><strong>Value:</strong> Enter a <strong>Positive (+)</strong> value (e.g., <code>0.15 mm</code>).</li>
-                </ol>
-            </div>
-
-            <div class="step-box">
-                <h3>For External Threads (Bolts/Screws)</h3>
-                <p><strong>Target:</strong> Make the bolt slightly <em>thinner</em>.</p>
-                <ol>
-                    <li><strong>Tool:</strong> Solid > Modify > Offset Face.</li>
-                    <li><strong>Select:</strong> All angled faces of the external thread.</li>
-                    <li><strong>Value:</strong> Enter a <strong>Negative (-)</strong> value (e.g., <code>-0.15 mm</code>).</li>
-                </ol>
-            </div>
-        </section>
-
-        <section id="slicer-settings">
-            <h2>4. Slicer Settings (The "No-CAD" Fix)</h2>
-            <p>If you cannot edit the CAD file, use these slicer compensations.</p>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Goal</th>
-                        <th>Cura Setting</th>
-                        <th>Prusa/Bambu Setting</th>
-                        <th>Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>Loosen Nut</strong></td>
-                        <td>Hole Horizontal Expansion</td>
-                        <td>X-Y Hole Compensation</td>
-                        <td><code>0.15 mm</code></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Loosen Bolt</strong></td>
-                        <td>Horizontal Expansion</td>
-                        <td>X-Y Contour Compensation</td>
-                        <td><code>-0.15 mm</code></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Sharper Threads</strong></td>
-                        <td>Wall Ordering: Outside To Inside</td>
-                        <td>External Perimeters First</td>
-                        <td><strong>Checked</strong></td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-    </main>
-
-    <footer>
-        <p>Generated for personal reference. Use "Offset Face" for best results.</p>
-    </footer>
-
+    <header><h1>3D Printing Hub</h1><p>Inventory & Reference Guide</p></header>
+    <section>
+        <h2>Filament Inventory</h2>
+        <table>
+            <thead><tr><th>Filament</th><th>Color</th><th>Stock</th><th>Slicer Profile</th></tr></thead>
+            <tbody>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Silk Purple</td>
+            <td style="color: #f0ad4e; font-weight: bold;">200.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Silk Purple @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Purple</td>
+            <td style="color: #6b8e23; font-weight: bold;">250.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Purple @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Light Brown</td>
+            <td style="color: #6b8e23; font-weight: bold;">300.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Light Brown @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Steel Gray</td>
+            <td style="color: #6b8e23; font-weight: bold;">500.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Steel Gray @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Yellow</td>
+            <td style="color: #6b8e23; font-weight: bold;">650.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Yellow @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Brown</td>
+            <td style="color: #6b8e23; font-weight: bold;">700.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Brown @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Pink</td>
+            <td style="color: #6b8e23; font-weight: bold;">800.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Pink @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic TPU</td>
+            <td>Black</td>
+            <td style="color: #6b8e23; font-weight: bold;">850.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">TPU - Black @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Gray</td>
+            <td style="color: #6b8e23; font-weight: bold;">900.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Gray @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Orange</td>
+            <td style="color: #6b8e23; font-weight: bold;">900.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Orange @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Blue</td>
+            <td style="color: #6b8e23; font-weight: bold;">900.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Blue @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>MH Gold</td>
+            <td style="color: #6b8e23; font-weight: bold;">900.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - MH Gold @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>IH Red</td>
+            <td style="color: #6b8e23; font-weight: bold;">950.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - IH Red @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Marble Cement Gray</td>
+            <td style="color: #6b8e23; font-weight: bold;">1000.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Marble Cement Gray @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Gold</td>
+            <td style="color: #6b8e23; font-weight: bold;">1000.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Gold @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Marble</td>
+            <td style="color: #6b8e23; font-weight: bold;">1000.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Marble @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PC</td>
+            <td>Black</td>
+            <td style="color: #6b8e23; font-weight: bold;">1000.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PC - Black @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PETG</td>
+            <td>Gray</td>
+            <td style="color: #6b8e23; font-weight: bold;">1000.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PETG - Gray @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic TPU</td>
+            <td>White</td>
+            <td style="color: #6b8e23; font-weight: bold;">1000.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">TPU - White @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Wood Filled</td>
+            <td style="color: #6b8e23; font-weight: bold;">1000.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Wood Filled @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Beige</td>
+            <td style="color: #6b8e23; font-weight: bold;">1000.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Beige @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PETG</td>
+            <td>Black</td>
+            <td style="color: #6b8e23; font-weight: bold;">1915.19g</td>
+            <td style="font-size: 0.8rem; color: #666;">PETG - Black @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PETG</td>
+            <td>White</td>
+            <td style="color: #6b8e23; font-weight: bold;">2500.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PETG - White @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Forest Green</td>
+            <td style="color: #6b8e23; font-weight: bold;">2800.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Forest Green @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>White</td>
+            <td style="color: #6b8e23; font-weight: bold;">3325.0g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - White @Snapmaker U1 (0.4 nozzle)</td>
+        </tr>
+        <tr>
+            <td>Generic PLA</td>
+            <td>Black</td>
+            <td style="color: #6b8e23; font-weight: bold;">4672.11g</td>
+            <td style="font-size: 0.8rem; color: #666;">PLA - Black @Snapmaker U1 (0.4 nozzle)</td>
+        </tr></tbody>
+        </table>
+    </section>
+    <section>
+        <h2>Fusion 360 Guide</h2>
+        <div class="step-box">
+            <p>Use <b>Modify > Offset Face</b> with <code>-0.15mm</code> for standard threads.</p>
+        </div>
+    </section>
+    <footer><p>Sync Time: 2026-01-12 00:27:18</p></footer>
 </div>
-
 </body>
 </html>
