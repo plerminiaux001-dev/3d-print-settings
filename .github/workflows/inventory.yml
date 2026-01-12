@@ -7,7 +7,7 @@ on:
       - 'Filament Inventory - Inventory.csv'
       - 'template.html'
       - 'update_inventory.py'
-  workflow_dispatch: # Allows you to trigger this manually from the Actions tab
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -25,24 +25,19 @@ jobs:
           python-version: '3.9'
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pandas
+        run: pip install pandas
 
       - name: Run inventory script
         run: python update_inventory.py
-
-      - name: Safety Check - Purge Large Files
-        # This prevents the "pre-receive hook declined" error by deleting index.html if it's over 50MB
-        run: |
-          find . -name "index.html" -size +50M -delete
-          find . -name "template.html" -size +50M -delete
 
       - name: Commit and push changes
         run: |
           git config --global user.name 'GitHub Action'
           git config --global user.email 'action@github.com'
+          
+          # Force add the index.html to ensure it isn't being ignored
+          git add -f index.html
           git add .
-          # The "exit 0" prevents the action from failing if there are no changes to save
+          
           git commit -m "Auto-update inventory and dashboard" || exit 0
           git push
