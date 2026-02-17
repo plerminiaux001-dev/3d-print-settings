@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Printing Threads: Fusion 360 & Slicer Guide</title>
+    <title>3D Printing Guide: Fusion 360 & G-code Reference</title>
     <style>
         :root {
             --primary-color: #0066cc;
@@ -23,7 +23,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 2rem;
         }
@@ -39,24 +39,12 @@
             margin-top: 2rem;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 0.3rem;
+            color: var(--primary-color);
         }
 
         h3 {
             margin-top: 1.5rem;
             color: #444;
-        }
-
-        .alert {
-            background-color: #fff8c5;
-            border: 1px solid #d4a72c40;
-            padding: 1rem;
-            border-radius: 6px;
-            margin: 1rem 0;
-        }
-
-        .alert-error {
-            background-color: #ffebe9;
-            border: 1px solid #ff818240;
         }
 
         code {
@@ -71,21 +59,18 @@
             width: 100%;
             border-collapse: collapse;
             margin: 1rem 0;
+            font-size: 0.95rem;
         }
 
         th, td {
             border: 1px solid var(--border-color);
-            padding: 8px 12px;
+            padding: 10px 14px;
             text-align: left;
         }
 
         th {
             background-color: var(--bg-color);
             font-weight: 600;
-        }
-
-        ul {
-            padding-left: 2rem;
         }
 
         .step-box {
@@ -111,35 +96,83 @@
 <div class="container">
 
     <header>
-        <h1>3D Printing Threads: Fusion 360 & Slicer Guide</h1>
+        <h1>3D Printing Reference: CAD & G-code</h1>
     </header>
 
     <main>
-        
-            <section id="fusion-solutions">
-            <h2>1. Solutions in Fusion 360</h2>
-            
+        <section id="gcode-reference">
+            <h2>1. Common G-code Commands</h2>
+            <p>Essential commands for manual terminal entry or custom layer scripts in Snapmaker Orca.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Name</th>
+                        <th>Example</th>
+                        <th>Function</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>G28</code></td>
+                        <td>Home All</td>
+                        <td><code>G28</code></td>
+                        <td>Returns all axes to the (0,0,0) position.</td>
+                    </tr>
+                    <tr>
+                        <td><code>G1</code></td>
+                        <td>Linear Move</td>
+                        <td><code>G1 X50 Y50 E10 F1200</code></td>
+                        <td>Moves to coordinates while extruding 10mm of filament.</td>
+                    </tr>
+                    <tr>
+                        <td><code>G92</code></td>
+                        <td>Set Position</td>
+                        <td><code>G92 E0</code></td>
+                        <td>Resets the extruder distance (essential before layer swaps).</td>
+                    </tr>
+                    <tr>
+                        <td><code>M104</code></td>
+                        <td>Set Hotend Temp</td>
+                        <td><code>M104 S230</code></td>
+                        <td>Sets temp and <strong>moves to next line immediately</strong>.</td>
+                    </tr>
+                    <tr>
+                        <td><code>M109</code></td>
+                        <td>Wait for Hotend</td>
+                        <td><code>M109 S230</code></td>
+                        <td>Sets temp and <strong>waits</strong> until reached before continuing.</td>
+                    </tr>
+                    <tr>
+                        <td><code>M140</code>/<code>M190</code></td>
+                        <td>Bed Temp</td>
+                        <td><code>M190 S60</code></td>
+                        <td>Set (M140) or Wait for (M190) bed temperature.</td>
+                    </tr>
+                    <tr>
+                        <td><code>M106</code></td>
+                        <td>Fan Speed</td>
+                        <td><code>M106 S255</code></td>
+                        <td>Controls cooling fan (0-255).</td>
+                    </tr>
+                    <tr>
+                        <td><code>M600</code></td>
+                        <td>Filament Change</td>
+                        <td><code>M600</code></td>
+                        <td>Pauses print for manual filament swap.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="fusion-solutions">
+            <h2>2. Solutions in Fusion 360</h2>
             <h3>Method A: Offset Face (The Correct Way)</h3>
-            <p>Instead of Press/Pull, use the specific Offset Face command.</p>
             <ol>
                 <li>Go to <strong>Solid Tab > Modify > Offset Face</strong>.</li>
                 <li>Select the <strong>angled faces</strong> (flanks) of the thread.</li>
-                <li>Enter your offset value (see table below).</li>
+                <li>Enter value (e.g., <code>-0.15mm</code>).</li>
             </ol>
-
-            <h3>Method B: The Rollback Method (Most Stable)</h3>
-            <p>Modify the cylinder before the thread is applied.</p>
-            <ol>
-                <li>Find the <strong>Thread Feature</strong> in the timeline.</li>
-                <li>Drag the history marker <strong>before</strong> the thread.</li>
-                <li>Use <strong>Press/Pull</strong> on the plain cylinder face (make hole larger or shaft smaller).</li>
-                <li>Drag the marker back to the end. The thread recomputes on the new diameter.</li>
-            </ol>
-        </section>
-
-        <section id="tolerances">
-            <h2>2. Tolerance Values (The "Magic Numbers")</h2>
-            <p>Use these values in the "Offset Face" command. Negative numbers remove material.</p>
 
             <table>
                 <thead>
@@ -153,57 +186,30 @@
                     <tr>
                         <td><strong>FDM (Standard)</strong></td>
                         <td><code>-0.15 mm</code></td>
-                        <td>Prusa, Bambu, well-tuned machines.</td>
+                        <td>Snapmaker U1 / Kobra 3 well-tuned.</td>
                     </tr>
                     <tr>
                         <td><strong>FDM (Loose)</strong></td>
                         <td><code>-0.20 mm</code></td>
-                        <td>Ender 3, older machines.</td>
+                        <td>For high-speed prints or older machines.</td>
                     </tr>
                     <tr>
                         <td><strong>SLA (Resin)</strong></td>
                         <td><code>-0.05 mm</code></td>
-                        <td>Resin is highly accurate.</td>
+                        <td>High accuracy.</td>
                     </tr>
                 </tbody>
             </table>
-            <p><em>Note: If offsetting both the nut and the bolt, halve these numbers.</em></p>
-        </section>
-
-        <section id="guide">
-            <h2>3. Step-by-Step Execution Guide</h2>
-
-            <div class="step-box">
-                <h3>For Internal Threads (Nuts/Holes)</h3>
-                <p><strong>Target:</strong> Make the hole slightly <em>larger</em>.</p>
-                <ol>
-                    <li><strong>Tool:</strong> Solid > Modify > Offset Face.</li>
-                    <li><strong>Select:</strong> All angled faces of the internal thread.</li>
-                    <li><strong>Value:</strong> Enter a <strong>Positive (+)</strong> value (e.g., <code>0.15 mm</code>).</li>
-                </ol>
-            </div>
-
-            <div class="step-box">
-                <h3>For External Threads (Bolts/Screws)</h3>
-                <p><strong>Target:</strong> Make the bolt slightly <em>thinner</em>.</p>
-                <ol>
-                    <li><strong>Tool:</strong> Solid > Modify > Offset Face.</li>
-                    <li><strong>Select:</strong> All angled faces of the external thread.</li>
-                    <li><strong>Value:</strong> Enter a <strong>Negative (-)</strong> value (e.g., <code>-0.15 mm</code>).</li>
-                </ol>
-            </div>
         </section>
 
         <section id="slicer-settings">
-            <h2>4. Slicer Settings (The "No-CAD" Fix)</h2>
-            <p>If you cannot edit the CAD file, use these slicer compensations.</p>
-
+            <h2>3. Slicer Settings (The "No-CAD" Fix)</h2>
             <table>
                 <thead>
                     <tr>
                         <th>Goal</th>
                         <th>Cura Setting</th>
-                        <th>Prusa/Bambu Setting</th>
+                        <th>Orca/Prusa Setting</th>
                         <th>Value</th>
                     </tr>
                 </thead>
@@ -220,20 +226,13 @@
                         <td>X-Y Contour Compensation</td>
                         <td><code>-0.15 mm</code></td>
                     </tr>
-                    <tr>
-                        <td><strong>Sharper Threads</strong></td>
-                        <td>Wall Ordering: Outside To Inside</td>
-                        <td>External Perimeters First</td>
-                        <td><strong>Checked</strong></td>
-                    </tr>
                 </tbody>
             </table>
         </section>
-
     </main>
 
     <footer>
-        <p>Generated for personal reference. Use "Offset Face" for best results.</p>
+        <p>Reference Guide for Peter's 3D Printing Projects | Kobra 3 & Snapmaker U1</p>
     </footer>
 
 </div>
