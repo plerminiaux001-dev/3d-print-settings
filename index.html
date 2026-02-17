@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Printing Guide: Fusion 360 & G-code Reference</title>
+    <title>3D Printing Reference: CAD & G-code</title>
     <style>
         :root {
             --primary-color: #0066cc;
             --bg-color: #f6f8fa;
             --text-color: #24292f;
             --border-color: #d0d7de;
-            --code-bg: #f6f8fa;
         }
 
         body {
@@ -35,20 +34,36 @@
             color: #050505;
         }
 
-        h2 {
-            margin-top: 2rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.3rem;
-            color: var(--primary-color);
+        details {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            background: #fff;
+            transition: all 0.3s ease;
         }
 
-        h3 {
-            margin-top: 1.5rem;
-            color: #444;
+        summary {
+            padding: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            background-color: var(--bg-color);
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        summary::-webkit-details-marker { display: none; }
+        summary::after { content: '▶'; font-size: 0.8rem; color: #666; }
+        details[open] summary::after { content: '▼'; }
+
+        .details-content {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
         }
 
         code {
-            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            font-family: "SFMono-Regular", Consolas, monospace;
             background-color: rgba(175, 184, 193, 0.2);
             padding: 0.2em 0.4em;
             border-radius: 6px;
@@ -59,33 +74,22 @@
             width: 100%;
             border-collapse: collapse;
             margin: 1rem 0;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         th, td {
             border: 1px solid var(--border-color);
-            padding: 10px 14px;
+            padding: 10px;
             text-align: left;
         }
 
-        th {
-            background-color: var(--bg-color);
-            font-weight: 600;
-        }
-
-        .step-box {
-            background-color: #fcfcfc;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 1.5rem;
-            margin: 1rem 0;
-        }
+        th { background-color: #f0f2f5; }
 
         footer {
             margin-top: 4rem;
-            padding-top: 2rem;
+            padding: 2rem;
             border-top: 1px solid var(--border-color);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #666;
             text-align: center;
         }
@@ -94,147 +98,93 @@
 <body>
 
 <div class="container">
+    <h1>3D Printing Master Reference</h1>
 
-    <header>
-        <h1>3D Printing Reference: CAD & G-code</h1>
-    </header>
-
-    <main>
-        <section id="gcode-reference">
-            <h2>1. Common G-code Commands</h2>
-            <p>Essential commands for manual terminal entry or custom layer scripts in Snapmaker Orca.</p>
+    <details>
+        <summary>1. Essential G-code Commands</summary>
+        <div class="details-content">
+            <p>Common commands for terminal entry or custom scripts in <strong>Snapmaker Orca</strong>.</p>
             <table>
                 <thead>
                     <tr>
                         <th>Command</th>
-                        <th>Name</th>
-                        <th>Example</th>
                         <th>Function</th>
+                        <th>Example</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td><code>G28</code></td>
-                        <td>Home All</td>
-                        <td><code>G28</code></td>
-                        <td>Returns all axes to the (0,0,0) position.</td>
-                    </tr>
-                    <tr>
-                        <td><code>G1</code></td>
-                        <td>Linear Move</td>
-                        <td><code>G1 X50 Y50 E10 F1200</code></td>
-                        <td>Moves to coordinates while extruding 10mm of filament.</td>
-                    </tr>
-                    <tr>
-                        <td><code>G92</code></td>
-                        <td>Set Position</td>
-                        <td><code>G92 E0</code></td>
-                        <td>Resets the extruder distance (essential before layer swaps).</td>
-                    </tr>
-                    <tr>
-                        <td><code>M104</code></td>
-                        <td>Set Hotend Temp</td>
-                        <td><code>M104 S230</code></td>
-                        <td>Sets temp and <strong>moves to next line immediately</strong>.</td>
-                    </tr>
-                    <tr>
-                        <td><code>M109</code></td>
-                        <td>Wait for Hotend</td>
-                        <td><code>M109 S230</code></td>
-                        <td>Sets temp and <strong>waits</strong> until reached before continuing.</td>
-                    </tr>
-                    <tr>
-                        <td><code>M140</code>/<code>M190</code></td>
-                        <td>Bed Temp</td>
-                        <td><code>M190 S60</code></td>
-                        <td>Set (M140) or Wait for (M190) bed temperature.</td>
-                    </tr>
-                    <tr>
-                        <td><code>M106</code></td>
-                        <td>Fan Speed</td>
-                        <td><code>M106 S255</code></td>
-                        <td>Controls cooling fan (0-255).</td>
-                    </tr>
-                    <tr>
-                        <td><code>M600</code></td>
-                        <td>Filament Change</td>
-                        <td><code>M600</code></td>
-                        <td>Pauses print for manual filament swap.</td>
-                    </tr>
+                    <tr><td><code>G28</code></td><td>Home All Axes</td><td><code>G28</code></td></tr>
+                    <tr><td><code>G1</code></td><td>Linear Move</td><td><code>G1 X50 Y50 E10 F1200</code></td></tr>
+                    <tr><td><code>G92</code></td><td>Set/Reset Position</td><td><code>G92 E0</code></td></tr>
+                    <tr><td><code>M104</code></td><td>Set Temp (Immediate)</td><td><code>M104 S240</code></td></tr>
+                    <tr><td><code>M109</code></td><td>Set Temp (Wait)</td><td><code>M109 S240</code></td></tr>
+                    <tr><td><code>M600</code></td><td>Filament Change</td><td><code>M600</code></td></tr>
                 </tbody>
             </table>
-        </section>
+        </div>
+    </details>
 
-        <section id="fusion-solutions">
-            <h2>2. Solutions in Fusion 360</h2>
-            <h3>Method A: Offset Face (The Correct Way)</h3>
-            <ol>
-                <li>Go to <strong>Solid Tab > Modify > Offset Face</strong>.</li>
-                <li>Select the <strong>angled faces</strong> (flanks) of the thread.</li>
-                <li>Enter value (e.g., <code>-0.15mm</code>).</li>
-            </ol>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Printer Type</th>
-                        <th>Offset Value</th>
-                        <th>Notes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>FDM (Standard)</strong></td>
-                        <td><code>-0.15 mm</code></td>
-                        <td>Snapmaker U1 / Kobra 3 well-tuned.</td>
-                    </tr>
-                    <tr>
-                        <td><strong>FDM (Loose)</strong></td>
-                        <td><code>-0.20 mm</code></td>
-                        <td>For high-speed prints or older machines.</td>
-                    </tr>
-                    <tr>
-                        <td><strong>SLA (Resin)</strong></td>
-                        <td><code>-0.05 mm</code></td>
-                        <td>High accuracy.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section id="slicer-settings">
-            <h2>3. Slicer Settings (The "No-CAD" Fix)</h2>
+    <details>
+        <summary>2. Fusion 360 Thread Solutions</summary>
+        <div class="details-content">
+            <h3>Method A: Offset Face (The Precise Way)</h3>
+            <p>Select the <strong>angled flanks</strong> of the thread and use <code>Solid > Modify > Offset Face</code>.</p>
+            
             <table>
                 <thead>
                     <tr>
                         <th>Goal</th>
-                        <th>Cura Setting</th>
-                        <th>Orca/Prusa Setting</th>
-                        <th>Value</th>
+                        <th>Direction</th>
+                        <th>Typical Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Internal (Hole)</strong></td><td>Positive (+)</td><td><code>0.15 mm</code></td></tr>
+                    <tr><td><strong>External (Bolt)</strong></td><td>Negative (-)</td><td><code>-0.15 mm</code></td></tr>
+                </tbody>
+            </table>
+
+            <h3>Method B: The Rollback Method</h3>
+            <p>Useful if <em>Offset Face</em> causes geometry errors:</p>
+            <ol>
+                <li>Drag history marker <strong>before</strong> the Thread feature.</li>
+                <li>Use <code>Press/Pull</code> on the plain cylinder to adjust its diameter.</li>
+                <li>Drag marker back to the end; thread recomputes automatically.</li>
+            </ol>
+        </div>
+    </details>
+
+    <details>
+        <summary>3. Slicer Compensations (Snapmaker/Orca)</summary>
+        <div class="details-content">
+            <p>Use these if you cannot edit the CAD file. Found in the <strong>"Quality"</strong> or <strong>"Precision"</strong> tab.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Goal</th>
+                        <th>OrcaSlicer Setting</th>
+                        <th>Target Value</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>Loosen Nut</strong></td>
-                        <td>Hole Horizontal Expansion</td>
-                        <td>X-Y Hole Compensation</td>
+                        <td>Loosen Hole</td>
+                        <td><strong>X-Y Hole Compensation</strong></td>
                         <td><code>0.15 mm</code></td>
                     </tr>
                     <tr>
-                        <td><strong>Loosen Bolt</strong></td>
-                        <td>Horizontal Expansion</td>
-                        <td>X-Y Contour Compensation</td>
+                        <td>Thinner Bolt</td>
+                        <td><strong>X-Y Contour Compensation</strong></td>
                         <td><code>-0.15 mm</code></td>
                     </tr>
                 </tbody>
             </table>
-        </section>
-    </main>
+        </div>
+    </details>
 
     <footer>
-        <p>Reference Guide for Peter's 3D Printing Projects | Kobra 3 & Snapmaker U1</p>
+        Reference Guide for Peter's Workshop | Kobra 3 & Snapmaker U1
     </footer>
-
 </div>
 
 </body>
